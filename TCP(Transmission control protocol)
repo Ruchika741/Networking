@@ -1,0 +1,178 @@
+# TCP
+
+- protocol that controls the transmission whereas UDP didn't control the transmission due to which sometimes firewall blocks the UDP
+- Layer 4 protocol
+- Ability to address processes in a host using ports
+- connection - session between client and server that means there is memory there is state. Stateful
+- Requires handshake to build that state
+- 20 bytes headers Segment(can go upto 60)
+
+# TCP use cases-
+
+- reliable communication
+- remote shell
+- Database connections
+- web communications. All we stuff is done using http protocol and http(http1 and http2) is built on TCP
+- Any bidirectional communication. It's not request response system.
+
+# TCP Connection
+
+- Connection is a Layer 5(session). Because here we already have the knowledge, state in memory.
+- Connecvtion is an agreement between client and server
+- Must create a connection to send data
+- Connection is identified by 4 properties- SourceIP-SourcePort and DestinationIP-DestinationPort. These 4 pairs from layer 3 and layer 4 are taken, the operating system hash it and preserve one hash and that hash is looked up in a lookup in the OS. And that;s matched with something called as file descriptor and it contains the state. CPU hashes these 4 details which takes a lot of memory.
+- There is file descriptor at both the ends source and destination that maintains the connection
+- Can't send data outside of a connection
+- Sometimes called socket or file descriptor(Layer 5)
+- Requires a 3-way TCP handshake
+- Segments that we send are sequenced and ordered
+- Segments are acknowledged
+- Lost segments are retransmitted and it makes TCP reliable
+
+# Multiplexing and Demultiplexing
+
+- IP target hosts only
+- Hosts run many apps each with different requirements
+- Ports now identify the apps or processes
+- Sender multiplexes all its apps into TCP connections
+- Receiver demultiplexes TCP segments to each app based on connection pairs
+
+# Closing connection
+
+- App 1 wants to close the connection with AppX
+- App1 sends FIN, AppX ACK(acknowledge)
+- AppX sends FIN, App1 ACK
+- Four way handshake
+
+# TCP Segment
+
+- TCP Segment header is 20 bytes(can go upto 60)
+- TCP Segment slides into an IP packet as "data"
+- Port are 16 bit(0 to 65535)
+- Sequences, acknowledgment, flow control and many more
+- Everytime you send a segment, you attach a sequence to it
+
+# Maximum Segment Size(MSS) or max frame data
+
+- Segment size depends on the MTU(maximum transmission unit) of the network
+- Usually 512 bytes can go upto 1460 bytes
+- Default MTU in the internet is 1500. The data includes garbage header that IP packet has so 1500-(20 bytes in IP+20 bytes in TCP)(results in MSS 1460)
+- Jumbo frames MTU goes upto 9000 or more
+- MSS can be larger in Jumbo frames cases
+
+# Flow control
+
+- flow control is how much data receiver can handle and how much sender should send
+- different from congestion control
+- Suppose you have good bandwidth to send data but you don't how much data the receiver can handle, there comes the role of flow control.
+
+# Window size(Receiver window) RWND
+
+- 16 bit - upto 64KB
+- The window size represents the amount of data that can be sent by the sender before receiving an acknowledgment from the receiver
+- updated with each acknowledgement
+- Tells the sender how much to send before waiting for ACK
+- Receiver can decide to reduce window size(out of memory) due to more important stuff
+
+# Window sliding
+
+- Can't keep waiting for receiver to acknowledge all segments
+- Whatever gets acknowledge moves
+- We slide the window
+- Sender maintains the sliding window for receiver
+
+# Window scaling
+
+- allows for the expansion of the window size beyond the maximum value specified in the TCP header
+- Window scaling helps address the limitation by allowing the sender and receiver to negotiate and increase the window size beyond the standard maximum value of 65,535 bytes.
+- The Window Scaling Option is a TCP header extension that includes a scale factor. The scale factor is used to multiply the window size value advertised in the TCP header, effectively allowing for a larger window size. 
+
+- wireshark - is a popular open-source network protocol analyzer and packet capture tool used to analyze network traffic, troubleshoot network issues, and inspect network protocols.
+
+# Congestion control
+
+- The receiver might handle the load but the middle boxes might not
+- The routers in the middle have limit
+- We don't want to congest the network with data
+- we need to avoid congestion
+- A new window: congestion window(CWND)
+
+# Two Congestion algorithms
+
+- TCP Slow start
+	- start slow goes fast. Increases window size exponentially and then linear
+	- CWND + 1MSS(maximum segment size) after each ACK
+	- CWND starts with 1MSS(or more)
+	- Send 1 segment and waits for ACK
+	- With each ACK received CWND is incremented by 1 MSS
+	- Until we reach slow start threshold we switch to congestion avoidance algorithm. Threshold can go upto 2MSS
+
+- Congestion Avoidance
+	- Once slow start reaches its threshold this kicks in
+	- CWND+ 1MSS after complete RTT(Round trip time- is a networking metric used to measure the time it takes for a data packet to travel from a source to a destination and then back to the source). So basically it speeds up after ACK is received by source for all the segment sent for example of 5 segments are sent
+	- Send CWND worth of segments and wait for ACK
+	- Only when all segments are ACKed add up to one MSS to CWND
+	- Precisely CWND = CWND+MSS*MSS/CWND
+	- Here it increses linaerly whereas in slow start it's exponential
+	- For example if you receive ACK3, ACK4, ACK5 for segment3,4,5, it increases MSS as segment 6,7,8,9(add 1 to congestion control)) i.e. by 1 whereas in slow start it increases by segment 6,7,8,9,10,11(add 3 to congestion control) exponentially
+
+- CWND must not exceed RWND
+
+
+# Congestion Notification
+
+- We don't want routers dropping packets
+- Can routers let us know when congestion hit
+- Meet ECN(Explicit congestion notification)
+- Routers and middle boxes can tag IP packets(Layer 3) with ECN
+- The receiver will copy this bit back to sender
+- ECN is IP header bit
+- So routers don't drop packets just let us know when you are reaching your limit
+
+# NAT(Network Address translation)
+
+- All of our devices(TV, wifi, phone, laptop etc) at home have same public IP address which is router but then how do they differentiate with each other. NAT lives in the router and maps the private IP address(not routable in the internet) which starts with 10.0.0... or 192.... or 160... or 172.... to a public image
+- IP address manager reserves certain subnet for private use which means they are not publically routable. If any router sees 10.0.0... it drops the packet, it never routes it, they are assigned for private use only
+- Router only needs public IP address
+- Router translates the request to and from it back to the device that originated it using NAT
+
+# NAT Applications
+
+- Private to public translations so we don't run out IPv4
+- Port forwarding
+				- Add a NAT entry in the router to forward packets to 80 to a machine in your LAN
+				- No need to have root access to listen to port 80 on your device
+				- Expose your local web server publically
+- Layer 4 Load Balancing
+				- HAProxy NAT Mode - Your load balancer is your gateway
+				- Client send a request to a bogus service IP(eg 100.100.100...)
+				- Router itercepts that packet and replaces this service IP with  a destination server
+				- Layer 4 reverse proxying
+
+# TCP connection states
+
+- TCP is a stateful protocol
+- Both client and server need to maintain all sorts of state
+- The connection goes through many states
+
+# TCP Pros and Cons
+
+Pros
+- Guarantee delivery
+- No one can send data without prior knowledge
+- Flow control and congestion control
+- Ordered packets no corruption or app level work
+- Secure and can't be easily spoofed. But still you will need an authentication protocol like TLS
+
+Cons
+- Larger header overhead 20 bytes(can go upto 60) compared to UDP
+- more bandwidth
+- Stateful- consumes memory on server and client
+- Considered high latency for certain workloads(slow start/congestion/acks)
+- connection pooling comes with TCP(not a con)
+
+- In the line server_socket.listen(1), the argument 1 specifies the maximum number of queued connections that the server socket can hold
+- When a TCP server is set to listen for incoming connections, it creates a backlog queue to store pending connections that are waiting to be accepted. The argument passed to listen() determines the size of this queue. In this case, 1 indicates that the server socket can hold a maximum of one pending connection.
+- It's important to note that the value passed to listen() does not limit the total number of connections that the server can handle; it only determines the size of the backlog queue. If more connections are accepted and not processed in a timely manner, the queue may become full, leading to potential connection rejections or errors for new incoming connections.
+
+- In general, all protocols are built on top of IP, UDP or TCP protocol. Example http is built on top of TCP which is built on top of IP. Same http2 is built on top of TCP which is built on top of IP. DNS which is built on top of UDP which is built on top of IP. SSH which is built on top of TCP which is built on top of IP. HTTP3 which is built on top of quick(new protocol) which is built on top of UDP. TLS is built on top of TCP. HTTPS which is build on top of TLS that uses TCP.

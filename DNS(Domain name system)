@@ -1,0 +1,19 @@
+- Whenever we hit any url, the first thing we do is query the DNS resolver and find out what is the IP address that is matching the domain so that we can turn around and use TCP in order to establish TCP handshake to that IP address.
+- DNS is broken into three sections- sub-domain(www), domain itself(google) and top-level domain(com). For example https://www.google.com
+
+# Why DNS?
+
+- Nobody remembers numbers of IP address which is one of the reason having DNS involved
+- A domain is a text points to an IP or collection of IPs
+- Additional layer of abstraction is good as the IP in backend might get changed but the Domain remains same
+- We can serve the closest IP to a client requesting the same domain- geo DNS concept. Like any CDN - cloudflare or fastly - if you choose to host your website in any of this cloudflare or fastly- your contents are replicated in multiple countries like India, US... If you go to your website and you live in India, the DNS resolution in India will give you an IP address that is in India. This way you are immediately connected to the closest server. Lower latency. Establishment of TCP handshake - the segment that says SYN -> SYN ACK -> ACK and so on. This is much way faster.
+- Load balancing- if I query any domain, I can get 5 IP addresses and it's up to me to round robin through all these IP addresses. All of them point to same domain. This way you can connect to the 1st one and have another client connection to the second one, third one and so on. This way you can balance between multiple servers. This concept of Load balancing is very powerfull when it comes to DNS.
+
+# DNS
+
+- A new addressing system that means we need a mapping. Meet DNS
+- If you have an IP and you need the MAC(media access control), we use ARP(Address resolution protocol)
+- If you have the name and you need the IP, we use DNS
+- Built on top of UDP
+- Port 53 is reserved for DNS whereas you can spin up DNS that listens to any port
+- Many records(MX for mail, TXT for text information, A, CNAME)

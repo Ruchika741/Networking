@@ -1,0 +1,117 @@
+IP(Internet protocol) Building Blocks-
+
+- IP packets gets transferred via routers-> Layer 3 property
+- IP packets means it's a bunch of data with source and destination IP adresses
+
+#IP Address-
+
+- Layer 3 property
+- Can be set automatically or statically
+- Network and Host portion
+- 4 bytes in IPv4 - 32 bits
+
+#Network vs Host
+
+- a.b.c.d/x (a.b.c.d are integers) x is the network bits and remains are host
+- Example 192.168.254.0/24
+- The first 24 bits (3 bytes) are network the rest 8 are for host
+- this means we can have 2^24 (16777216) networks and each network has 2^8 (255) hosts
+- Also called a subnet
+
+#Subnet Mask
+
+- 192.168.254.0/24 is also called a subnet
+- The subnet has a mask 255.255.255.0
+- Subnet mask is used to determine whether an IP is in the same subnet. If the IP is in same subnet/network, then packets can   directly be sent using MAC address which is host to host communication and if it is in different subnet then routers/gateways can be used.
+
+#Default gateway
+
+- Most networks consists of hosts and a default gateway
+- Host A can talk to B directly if both are in the same subnet(network, you can find it using subnet mask, using AND operation 	with 255.255.255.0 with both source and destination IP address where 255 are all one's) using MAC address. Here the router will act as a switch. It just need layer2 for this. Here, packet transfer happens within the same network.
+- Otherwise A sends it to someone who might know, the gateway(router which doesn't care about the protocol)
+- The Gateway has an IP address and each host should know its gateway
+- If you have your application and database in different subnet, and both are connect using router. And if your router is  congested, it will slow down your SQL queries execution and response. You should have your applicayion and database in the same subnet and it tals using router as a switch.
+
+#ICMP(Internet control message protocol)
+
+- lives in layer 3. That means there is source and destination IP. There is no concept of ports at that layer.
+- ping, traceroute uses it
+- Designed for informational messages
+   - Host unreachable, port unreachable, fragmentation of IP packets needed
+   - Packet expired(infinite loop in routers)
+
+- Uses IP directly
+- Doesn't require listeners or ports to be opened
+- Some firewalls block ICMP for security reasons
+- That is why PING might not work in most cases
+- Disabling ICMP also can cause real damage with connection establishment
+	- Fragmentation needed
+
+- TTL stands for "Time to Live." It is a field found in the IP (Internet Protocol) header of packets that are transmitted over IP-based networks, including the Internet. The TTL value is used to determine the maximum amount of time or "hops" that a packet can traverse through different network devices before it is discarded.
+
+	- When a packet is sent from a source device to a destination device, it passes through multiple routers or network devices along the path. Each router decrements the TTL value by one. If the TTL reaches zero, the router discards the packet and sends an ICMP (Internet Control Message Protocol) "Time Exceeded" message back to the source device.
+
+	- The primary purpose of the TTL field is to prevent packets from endlessly circulating in a network, ensuring that they eventually reach their destination or get discarded if they exceed the TTL value. By limiting the lifespan of packets, TTL provides a mechanism for controlling network congestion, preventing infinite packet loops, and ensuring efficient packet delivery.
+
+	-The TTL value can be observed using various network diagnostic tools, such as the 'ping' command in command-line interfaces or network monitoring tools. By examining the TTL value in the response packets received from a destination, it is possible to estimate the number of hops between the source and the destination.
+
+
+#TraceRoute
+
+- Can you identify the entire path your IP packet takes?
+- Clever use of TTL
+- Increment TTL slowly and you will get the router IP address for each hop
+- Doesn't always works as path changes and ICMP might be blocked
+- there can be multiple routers between source and destination. On every hop to router TTL reduces by 1. 
+eg- traceroute(MAC/linux)/tracert(windows) google.com
+
+#IP Packet
+
+- IP packets means it's a bunch of data with source and destination IP adresses
+- The IP packet has headers and data sections
+- IP packet header is 20 bytes (can go upto 60 bytes if options are enabled)
+- Data section can go upto 65536 bytes
+- IP is stateless. TTL is used to keep track of the state.
+
+	MTU - maximum transmission unit - frame size. Each IP packet should fit into each MTU(frame). If it doen't fit then fragment those IP packets into different frames.
+
+	- Usually the first router is ISP(Internet service provider) as it routes you to internet.
+	- Congestion is when IP packets starts to drop.As IP packets starts coming, router needs certain amount of memory to process them called buffer to put the packets in. This memory fills up if you have too many packets to process in the queue. Router gets slower then memory gets filled. When the buffer is full then the incoming packet starts getting dropped by the controller of router. This is called congestion. Eg when there are more and more users accessing a webpage at the same time and site goes down.
+
+	- Congestion control is solution to prevent the dropping of incoming packets.
+	- Explicit Congestion Notification(ECN)(2 bits) - The router when their buffer fills up, instead of dropping the incoming packets, it sets the ECN bit to 1(True). This bit becomes visible to receiver so that he will know that some of the router is experiencing congestion. Then TCP layer takes control. Here client and receiver both will get aware with the help of this bit. 
+
+	#ARP(Address Resolution Protocol)-
+
+	- ARP is a protocol used in IP networks to map an IP address to a corresponding Media Access Control (MAC) address.
+	- used to identify one of the IP information
+	- we need the MAC address to send frames(Layer2)
+	- is a cached representation to map the IP address and MAC address. We always know the IP and never know the MAC
+	- when we need to route data in same network then we need the MAC address of source and destination to switch data in same network
+	- Even when you want to talk with someone outside the network, you will still need to know the MAC address of gateway.
+	- We need MAC address to send frames between machines
+	- Need a lookup protocol that give us the MAC from IP address
+	- Attacks can be performed on ARP(ARP poisoning)
+	- Switch is layer2(MAC) protocol
+
+	#tcpdump
+
+	- Tcpdump prints out a description of the contents of packets on a network interface
+
+	# IP Address-
+
+	- Each IP(IPv4) address is of 32 bits
+	- Each byte of 8 bit segment is divided by a period and expressed as a number 0-255
+	- Eg 192.168.0.5 In binary it would be as 1100 0000 - 1010 1000 - 0000 0000 - 0000 0101
+	- IP addresses are of two components. The first part is used to identify the network that the address is part of.
+	- The second part is used to identify the host within that network
+	- The network portion of an IP address identifies the specific network or subnetwork to which a device belongs. It represents the network infrastructure and is used for routing packets between networks.
+	- The host portion of an IP address identifies an individual device within a specific network. It represents the unique address assigned to a device within its network.
+	- CIDR notation of 192.168.0.15/24. This means that the first 24 bits of the IP address given are considered significant for the network routing.
+
+	How to identify the network and host bits in given IP?
+
+	- suppose the IP is 192.168.123.132/24 OR 255.255.255.0
+	- 255.255.255.0 has 24 1's which represents /24 in given IP. We use subnet mask which is here 255.255.255.0
+	- So the first 24 bits/first 3 bytes of IP is network viz 192.168.123.0
+	- And the remaining 8 bit is host viz 000.000.000.132
